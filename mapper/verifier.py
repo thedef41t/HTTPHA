@@ -5,6 +5,7 @@ from utils.rich_console import r_console
 from rich.table import Table
 from rich.panel import Panel
 from .status_codes import analyze_status_code
+from .header_checker import request_header_checker
 
 def verify_web(target_url: str) -> dict:
     """ it verifies if the given website is rechable before testing. """
@@ -32,7 +33,7 @@ def verify_web(target_url: str) -> dict:
                 pr.update(task, description="Checking headers...", total=None)
                 status_info = analyze_status_code(status_code)
                 is_reachable = status_info["is_reachable"]
-
+                vulnerable_headers = request_header_checker(req_headers)
             else:
                 status_info = {
                     "category": "No Response",
@@ -87,13 +88,28 @@ def verify_web(target_url: str) -> dict:
             table = Table(title=f"Response headers for [red]{target_url}[/]")
             table.add_column("Header", justify="left", no_wrap=True)
             table.add_column("Value", justify="left", no_wrap=True)
-            for header, attribute in req_headers.items():
-                table.add_row(header ,str(attribute))
+            for header, directive in req_headers.items():
+                table.add_row(header ,str(directive))
             r_console.print(table)
+            print()
         else:
             r_console.print("[[red]Error[/]] No headers received!")
         # ----------------------------------------------------------------------------------------------
         
+        # ----------------------------------------------------------------------------------------------
+        if vulnerable_headers:
+            for list in vulnerable_headers:
+                vulnerable_header = list.get("header", "unknown")
+                vulnerable_message = list.get("message", "No description")
+            table = Table(title=f"Potential vulnerabilities in [red]{target_url}[/]", style="red")
+            table.add_column("Header", justify="left", no_wrap=True)
+            table.add_column("Description", justify="left", no_wrap=True)
+            table.add_row(vulnerable_header, vulnerable_message)
+            r_console.print(table)
+        else:
+            r_console.print("HTTP headers are securely configurued!")
+        # ----------------------------------------------------------------------------------------------
+
     except Exception:
         r_console.print(f"[Error]: {error}")
 

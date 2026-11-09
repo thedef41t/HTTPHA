@@ -3,7 +3,7 @@ def analyze_status_code(status_code: int) -> dict:
     if 200 <= status_code < 300:
         return {
             "category": "Success",
-            "description": "Request successfully receivced",
+            "description": "Response successfully receivced",
             "is_reachable": True,
             "color": "green3"
         }
